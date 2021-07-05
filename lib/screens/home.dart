@@ -1,13 +1,18 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:wallpaper_flutter/data/data.dart';
 import 'package:wallpaper_flutter/model/wallpaper.dart';
+import 'package:wallpaper_flutter/screens/image_view.dart';
 import 'package:wallpaper_flutter/widget/widget.dart';
 import 'package:wallpaper_flutter/model/categories.dart';
 import 'package:wallpaper_flutter/constants.dart';
 import 'package:http/http.dart' as http;
+import 'package:wallpaper_flutter/screens/search.dart';
+import 'package:wallpaper_flutter/screens/category.dart';
+import 'package:wallpaper_flutter/screens/image_view.dart';
 
 class Wallpaper extends StatefulWidget {
   @override
@@ -16,21 +21,22 @@ class Wallpaper extends StatefulWidget {
 
 class _WallpaperState extends State<Wallpaper> {
   getTrendingWallpapers() async {
-    var response = await http.get(
-        Uri.parse('https://api.pexels.com/v1/curated?per_page=30'),
-        headers: {"Authorisation": apikey});
-
-    Map<String, dynamic> jsonData = jsonDecode(response.body);
-    jsonData["photos"].forEach((element) {
-      WallpaperModel wallpaperModel = new WallpaperModel();
-      wallpaperModel = WallpaperModel.fromMap(element);
-      wallpapers.add(wallpaperModel);
+    await http.get(Uri.parse('https://api.pexels.com/v1/curated?per_page=30'),
+        headers: {"Authorization": apikey}).then((response) {
+      Map<String, dynamic> jsonData = jsonDecode(response.body);
+      jsonData["photos"].forEach((element) {
+        WallpaperModel wallpaperModel = new WallpaperModel();
+        wallpaperModel = WallpaperModel.fromMap(element);
+        wallpapers.add(wallpaperModel);
+      });
+      setState(() {});
     });
-    setState(() {});
   }
 
   List<Categories> categories = new List.empty(growable: true);
   List<WallpaperModel> wallpapers = new List.empty(growable: true);
+  TextEditingController searchController =
+      new TextEditingController(); //for texfield
   @override
   void initState() {
     getTrendingWallpapers();
@@ -63,13 +69,23 @@ class _WallpaperState extends State<Wallpaper> {
                     children: [
                       Expanded(
                         child: TextField(
+                          controller: searchController,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: "Search Wallpapers",
                           ),
                         ),
                       ),
-                      Icon(Icons.search)
+                      GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => Search(
+                                          seachQuery: searchController.text,
+                                        )));
+                          },
+                          child: Icon(Icons.search))
                     ],
                   ),
                 ),
@@ -111,35 +127,45 @@ class CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(right: 5.0),
-      child: Stack(
-        children: [
-          Container(
-            child: ClipRRect(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Categ(
+                      catergoryName: title.toLowerCase(),
+                    )));
+      },
+      child: Container(
+        margin: EdgeInsets.only(right: 5.0),
+        child: Stack(
+          children: [
+            Container(
+              child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10.0),
+                  child: Image.network(
+                    imgUrl,
+                    height: 50.0,
+                    width: 100.0,
+                    fit: BoxFit
+                        .cover, //to use as cover image for different resolutions
+                  )),
+            ),
+            Container(
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10.0),
-                child: Image.network(
-                  imgUrl,
-                  height: 50.0,
-                  width: 100.0,
-                  fit: BoxFit
-                      .cover, //to use as cover image for different resolutions
-                )),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.0),
-              color: Colors.black38,
-            ),
-            height: 50.0,
-            width: 100.0,
-            alignment: Alignment.center,
-            child: Text(
-              title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0),
-            ),
-          )
-        ],
+                color: Colors.black38,
+              ),
+              height: 50.0,
+              width: 100.0,
+              alignment: Alignment.center,
+              child: Text(
+                title,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

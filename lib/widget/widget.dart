@@ -1,17 +1,25 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wallpaper_flutter/model/wallpaper.dart';
+import 'package:wallpaper_flutter/screens/image_view.dart';
 
 Widget topName() {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Text(
-        'Oyus',
-        style: TextStyle(color: Color(0xffBB86FC)),
+  return RichText(
+    text: TextSpan(
+      text: '',
+      style: TextStyle(
+        fontSize: 16.0,
       ),
-      Text('Wall')
-    ],
+      children: const <TextSpan>[
+        TextSpan(
+            text: 'Oyus',
+            style: TextStyle(
+                color: Color(0xffBB86FC), fontWeight: FontWeight.w500)),
+        TextSpan(
+            text: 'Wall',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+      ],
+    ),
   );
 }
 
@@ -26,15 +34,28 @@ Widget wallpapersList({List<WallpaperModel> wallpapers, context}) {
       mainAxisSpacing: 6.0,
       crossAxisSpacing: 6.0,
       children: wallpapers.map((wallpaper) {
-        return GridTile(
-            child: Container(
-                child: ClipRRect(
-          borderRadius: BorderRadius.circular(16.0),
-          child: Image.network(
-            wallpaper.src.portrait,
-            fit: BoxFit.cover,
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ImageView(
+                          imgPath: wallpaper.src.portrait,
+                        )));
+          },
+          child: Hero(
+            tag: wallpaper.src.portrait,
+            child: GridTile(
+                child: Container(
+                    child: ClipRRect(
+              borderRadius: BorderRadius.circular(16.0),
+              child: Image.network(
+                wallpaper.src.portrait,
+                fit: BoxFit.cover,
+              ),
+            ))),
           ),
-        )));
+        );
       }).toList(),
     ),
   );
